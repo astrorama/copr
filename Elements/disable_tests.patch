@@ -1,0 +1,73 @@
+diff --git a/ElementsExamples/CMakeLists.txt b/ElementsExamples/CMakeLists.txt
+index 8be4b56..2572d6b 100644
+--- a/ElementsExamples/CMakeLists.txt
++++ b/ElementsExamples/CMakeLists.txt
+@@ -104,28 +104,6 @@ elements_add_unit_test(OtherClassExampleWithMain tests/src/CppUnit/ClassExample_
+                        LABELS CustomLabel CppUnit)
+ endif()
+ 
+-#===== Tests using GMock =======================================================
+-if(GMOCK_FOUND)
+-
+-elements_add_unit_test(DataSourceUser_test_suite tests/src/GMock/DataSourceUser_test.cpp
+-                       LINK_LIBRARIES GMock ElementsExamples TYPE Boost
+-                       INCLUDE_DIRS GMock ElementsExamples
+-                       LABELS GMock)
+-
+-elements_add_unit_test(TemplatedDataSourceUser_test_suite tests/src/GMock/TemplatedDataSourceUser_test.cpp
+-                       LINK_LIBRARIES GMock ElementsExamples TYPE Boost
+-                       INCLUDE_DIRS GMock ElementsExamples
+-                       LABELS GMock)
+-
+-# inhibits the -Wsuggest-override that is not supported by gmock (yet)
+-if(CXX_HAS_SUGGEST_OVERRIDE)
+-  set_property(SOURCE tests/src/GMock/DataSourceUser_test.cpp tests/src/GMock/TemplatedDataSourceUser_test.cpp
+-               PROPERTY COMPILE_FLAGS -Wno-suggest-override)
+-endif() 
+-                
+-                       
+-endif(GMOCK_FOUND)
+-
+ #====== Build Tests =================================================================
+ 
+ 
+@@ -209,14 +187,6 @@ elements_add_swig_binding(SwigExample ElementsExamples/SwigExample.i
+                           LINK_LIBRARIES ElementsExamples
+                           INCLUDE_DIRS ElementsExamples
+                           PUBLIC_HEADERS ElementsExamples)
+-                          
+-find_package(NumPy)
+-if(NUMPY_FOUND)
+-elements_add_swig_binding(NumPyExample  ElementsExamples/NumPyExample.i
+-                          INCLUDE_DIRS NumPy
+-                          NO_PUBLIC_HEADERS)
+-endif()
+-
+ endif()
+ 
+ find_package(Cython QUIET)
+diff --git a/ElementsKernel/CMakeLists.txt b/ElementsKernel/CMakeLists.txt
+index c6f8720..35d4987 100644
+--- a/ElementsKernel/CMakeLists.txt
++++ b/ElementsKernel/CMakeLists.txt
+@@ -116,13 +116,6 @@ elements_add_unit_test(BackTrace tests/src/BackTrace_test.cpp
+                        EXECUTABLE BackTrace_test
+                        LINK_LIBRARIES ElementsKernel TYPE Boost)
+ 
+-#-----------------------
+-# System_test
+-elements_add_unit_test(System tests/src/System_test.cpp
+-                       EXECUTABLE System_test
+-                       LINK_LIBRARIES ElementsKernel TYPE Boost)
+-
+-
+ #-----------------------
+ # GetEnv_test
+ elements_add_unit_test(GetEnv tests/src/GetEnv_test.cpp
+@@ -210,4 +203,4 @@ elements_add_test(PatchVersionProject
+ elements_add_test(CMakeOverride 
+                   COMMAND cmakeOverride_test  
+                   ENVIRONMENT CMAKE_PREFIX_PATH+=${CMAKE_SOURCE_DIR}/cmake
+-                  LABELS Creation Override)
+\ No newline at end of file
++                  LABELS Creation Override)
