@@ -7,5 +7,5 @@ index 40b71ad..8418d20 100644
  
  # Declare project name and version
 -elements_project(Alexandria 2.10 USE Elements 5.2.2)
-+elements_project(Alexandria 2.9 USE Elements 5.4)
++elements_project(Alexandria 2.10 USE Elements 5.4)
 
