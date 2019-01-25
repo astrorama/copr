@@ -3,7 +3,7 @@
 Summary:        Alexandria Project
 Name:           Alexandria
 Version:        2.10
-Release:        1%{?dist}
+Release:        2%{?dist}
 License:        Public Domain
 Group:          Development/Tools
 Source:         https://github.com/nikoapos/Alexandria/archive/2.10.tar.gz
