@@ -210,25 +210,19 @@ rm -rf $RPM_BUILD_ROOT
 %{_bindir}/MultiThresholdPartitionStep_test
 %{_bindir}/NeighbourInfo_test
 %{_bindir}/NeutralConverter_test
-%{_bindir}/Observable_test
 %{_bindir}/OverlappingBoundariesCriteria_test
 %{_bindir}/PaddedImage_test
-%{_bindir}/Partition_test
 %{_bindir}/PixelBoundaries_test
 %{_bindir}/PixelCentroid_test
 %{_bindir}/PixelCoordinate_test
 %{_bindir}/PointModelFitting_test
-%{_bindir}/PropertyHolder_test
 %{_bindir}/PropertyId_test
 %{_bindir}/PsfTask_test
 %{_bindir}/RecenterImage_test
 %{_bindir}/SigmoidConverter_test
 %{_bindir}/SimpleModelFitting_test
 %{_bindir}/SimpleSource_test
-%{_bindir}/SourceGroupWithOnDemandProperties_test
 %{_bindir}/SourceGrouping_test
-%{_bindir}/SourceInterface_test
-%{_bindir}/SourceWithOnDemandProperties_test
 %{_bindir}/TaskProvider_test
 %{_bindir}/TemporaryFile_test
 %{_bindir}/TemporaryFitsSource_test
@@ -241,4 +235,13 @@ rm -rf $RPM_BUILD_ROOT
 %{libdir}/libSEFrameworkBoostTest.so
 %{libdir}/libSEImplementationBoostTest.so
 %{libdir}/libSEUtilsBoostTest.so
+
+%if !0%{?el7}
+%{_bindir}/Observable_test
+%{_bindir}/Partition_test
+%{_bindir}/PropertyHolder_test
+%{_bindir}/SourceGroupWithOnDemandProperties_test
+%{_bindir}/SourceInterface_test
+%{_bindir}/SourceWithOnDemandProperties_test
+%endif
 
