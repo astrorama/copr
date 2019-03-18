@@ -3,7 +3,7 @@
 Summary:        Elements Project
 Name:           Elements
 Version:        5.4
-Release:        1%{?dist}
+Release:        2%{?dist}
 License:        Public Domain
 Group:          Development/Tools
 Source:         https://github.com/degauden/Elements/archive/5.4.tar.gz
