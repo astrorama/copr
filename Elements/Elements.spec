@@ -3,7 +3,7 @@
 Summary:        Elements Project
 Name:           Elements
 Version:        5.4
-Release:        2%{?dist}
+Release:        3%{?dist}
 License:        Public Domain
 Group:          Development/Tools
 Source:         https://github.com/degauden/Elements/archive/5.4.tar.gz
@@ -47,7 +47,7 @@ Requires: python
 Requires(post):    /sbin/ldconfig
 Requires(postun):  /sbin/ldconfig
 
-%define bin_tag x86_64-fc28-gcc82-o2g
+%define bin_tag x86_64-fc28-gcc83-o2g
 %define _prefix /usr
 %define build_dir_name ../../mnt/tmp/tmpv7p8q5nh/Elements/builddir
 

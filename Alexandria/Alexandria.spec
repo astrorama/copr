@@ -3,7 +3,7 @@
 Summary:        Alexandria Project
 Name:           Alexandria
 Version:        2.10
-Release:        3%{?dist}
+Release:        4%{?dist}
 License:        Public Domain
 Group:          Development/Tools
 Source:         https://github.com/nikoapos/Alexandria/archive/2.10.tar.gz
@@ -38,7 +38,7 @@ Requires: Elements = 5.4
 Requires(post):    /sbin/ldconfig
 Requires(postun):  /sbin/ldconfig
 
-%define bin_tag x86_64-fc28-gcc82-o2g
+%define bin_tag x86_64-fc28-gcc83-o2g
 %define _prefix /usr
 %define build_dir_name ../../mnt/tmp/tmpze9yyphs/Alexandria/builddir
 
