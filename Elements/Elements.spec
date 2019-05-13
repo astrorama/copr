@@ -1,12 +1,16 @@
-# -*- rpm-spec -*-
+%if 0%{?fedora} > 28
+%global __python /usr/bin/python3
+%else
+%global __python /usr/bin/python
+%endif
 
 Summary:        Elements Project
 Name:           Elements
-Version:        5.4
-Release:        3%{?dist}
+Version:        5.6
+Release:        1%{?dist}
 License:        Public Domain
 Group:          Development/Tools
-Source:         https://github.com/degauden/Elements/archive/5.4.tar.gz
+Source:         https://github.com/degauden/Elements/archive/5.6.tar.gz
 Vendor:         The Euclid Consortium
 
 Patch0:         disable_tests.patch
@@ -14,9 +18,9 @@ Patch0:         disable_tests.patch
 %bcond_with doc
 
 %global __brp_mangle_shebangs_exclude /usr/bin/env python
-%global __python /usr/bin/python 
-
-
+%{!?python_sitelib: %define python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")}
+%{!?python_sitearch: %define python_sitearch %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(1))")}
+%{!?python_libdir: %define python_libdir %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(1,1))")}
 
 BuildRequires: CCfits-devel
 BuildRequires: boost-devel >= 1.53
@@ -26,23 +30,24 @@ BuildRequires: fftw-devel
 BuildRequires: gmock-devel
 BuildRequires: gtest-devel
 BuildRequires: log4cpp-devel >= 1.1
-BuildRequires: python2
-BuildRequires: python2-devel
-BuildRequires: python2-pytest
 BuildRequires: swig
 BuildRequires: wcslib-devel
 
 %if 0%{?fedora} > 28
 BuildRequires: gcc-c++
+BuildRequires: python3
 BuildRequires: python3-pytest
 BuildRequires: python3-devel
+Requires:      python3
+%else
+BuildRequires: python2
+BuildRequires: python2-devel
+BuildRequires: python2-pytest
+Requires:      python
 %endif
 BuildRequires: gcc > 4.7
 BuildRequires: cmake >= 2.8.5
 
-
-
-Requires: python
 
 Requires(post):    /sbin/ldconfig
 Requires(postun):  /sbin/ldconfig
@@ -51,18 +56,20 @@ Requires(postun):  /sbin/ldconfig
 %define _prefix /usr
 %define build_dir_name ../../mnt/tmp/tmpv7p8q5nh/Elements/builddir
 
-%define libdir %{_prefix}/lib64
-%define pydir %{_prefix}/lib64/python2.7/site-packages
-%define pydyndir %{_prefix}/lib64/python2.7/lib-dynload
+%define pydir %{python_sitearch}
 %define scriptsdir %{_prefix}/bin
 %define cmakedir %{_prefix}/lib64/cmake/ElementsProject
 %define makedir %{_prefix}/share/Elements/make
 %define confdir %{_prefix}/share/conf
 %define auxdir %{_prefix}/share/auxdir
 %define docdir %{_prefix}/share/doc/Elements
-%define xmldir %{_prefix}/lib64/cmake/ElementsProject
+%define xmldir %{_libdir}/cmake/ElementsProject
 
-
+%if 0%{?fedora} > 28
+%define pydyndir %{python_libdir}/lib-dynload
+%else
+%define pydyndir %{_libdir}/python*/lib-dynload
+%endif
 
 %description
 A C++ base framework for the Euclid Software.
@@ -99,10 +106,13 @@ Tests for %{name}
 %build
 export BINARY_TAG=%{bin_tag}
 export VERBOSE=1
+%if 0%{?fedora} > 28
+EXTRA_CMAKE_FLAGS="-DPYTHON_EXPLICIT_VERSION=3"
+%endif
 #
 %__mkdir -p $RPM_BUILD_DIR/$BINARY_TAG
 cd $RPM_BUILD_DIR/$BINARY_TAG
-%cmake  -DSQUEEZED_INSTALL:BOOL=ON -DINSTALL_DOC:BOOL=OFF --no-warn-unused-cli $RPM_BUILD_DIR/%{name}-%{version}
+%cmake  -DSQUEEZED_INSTALL:BOOL=ON -DINSTALL_DOC:BOOL=OFF -DUSE_SPHINX=OFF ${EXTRA_CMAKE_FLAGS} --no-warn-unused-cli $RPM_BUILD_DIR/%{name}-%{version}
 %__make VERBOSE=1 %{?_smp_mflags} all
 
 %install
@@ -127,8 +137,8 @@ rm -rf $RPM_BUILD_ROOT
 %files
 %defattr(-,root,root,-)
 %{xmldir}/ElementsEnvironment.xml
-%{libdir}/libElementsKernel.so
-%{libdir}/libElementsKernelBoostTest.so
+%{_libdir}/libElementsKernel.so
+%{_libdir}/libElementsKernelBoostTest.so
 %{scriptsdir}/CreateElementsProject
 %{scriptsdir}/AddElementsModule
 %{scriptsdir}/AddCppClass
@@ -143,12 +153,11 @@ rm -rf $RPM_BUILD_ROOT
 %{scriptsdir}/ElementsNameCheck
 %{scriptsdir}/GetElementsFiles
 %{auxdir}/ElementsKernel
-%{pydir}/ELEMENTS_VERSION.py
-%{pydir}/ELEMENTS_VERSION.pyo
-%{pydir}/ELEMENTS_VERSION.pyc
-%{pydir}/ELEMENTS_INSTALL.py
-%{pydir}/ELEMENTS_INSTALL.pyo
-%{pydir}/ELEMENTS_INSTALL.pyc
+%{pydir}/ELEMENTS_VERSION.py*
+%{pydir}/ELEMENTS_INSTALL.py*
+%if 0%{?fedora} > 28
+%{pydir}/__pycache__/ELEMENTS*
+%endif
 %{pydir}/ElementsKernel
 
 %files devel
@@ -170,6 +179,8 @@ rm -rf $RPM_BUILD_ROOT
 %{cmakedir}/ElementsToolChainMacros.cmake
 %{cmakedir}/ElementsUninstall.cmake
 %{cmakedir}/ElementsUtils.cmake
+%{cmakedir}/ElementsInfo.cmake
+%{cmakedir}/cmake_info.cmake.in
 %{cmakedir}/SGSPlatform.cmake
 %{cmakedir}/auxdir
 %{cmakedir}/cmake_uninstall.cmake.in
@@ -195,17 +206,134 @@ rm -rf $RPM_BUILD_ROOT
 
 %files tests
 %defattr(-,root,root,-)
-%{_bindir}/*_test
-%{_bindir}/*Example*
-%{libdir}/*Examples*
+%{_bindir}/Auxiliary_test
+%{_bindir}/BackTraceExample
+%{_bindir}/BackTrace_test
+%{_bindir}/BasicConfiguration_test
+%{_bindir}/BoostClassExample_test
+%{_bindir}/BoostClassExampleWithMain_test
+%{_bindir}/BoostElementsExampleAllTests
+%{_bindir}/CCfitsExample
+%{_bindir}/CfitsioExample
+%{_bindir}/CppProgramExample
+%{_bindir}/CProgramExample
+%{_bindir}/ElementsExamplesModuleInfo_test
+%{_bindir}/ElementsExamples_OtherClassExampleWithMain_test
+%{_bindir}/ElementsLogging_test
+%{_bindir}/ElementsProgramExampleWithArguments
+%{_bindir}/ElementsSimpleProgramExample
+%{_bindir}/Environment_test
+%{_bindir}/Exception_test
+%{_bindir}/FftwExample
+%{_bindir}/FloatPrecisionExample
+%{_bindir}/FunctionExample_test
+%{_bindir}/GetEnv_test
+%{_bindir}/MathConstants_test
+%{_bindir}/ModuleInfo_test
+%{_bindir}/Number_test
+%{_bindir}/OptionPrecedence_test
+%{_bindir}/OtherClassExample_test
+%{_bindir}/PathSearch_test
+%{_bindir}/Path_test
+%{_bindir}/PythonProgramExample
+%{_bindir}/PythonTestProgramExample
+%{_bindir}/Real_test
+%{_bindir}/ScriptThatChecksFile_test
+%{_bindir}/ScriptThatFails_test
+%{_bindir}/ScriptThatGivesError_test
+%{_bindir}/ScriptThatGivesOutput_test
+%{_bindir}/ScriptThatGivesStdError_test
+%{_bindir}/ScriptThatSucceeds_test
+%{_bindir}/Sleep_test
+%{_bindir}/Storage_test
+%{_bindir}/SwigProgramExample
+%{_bindir}/SystemOfUnits_test
+%{_bindir}/Temporary_test
+%{_bindir}/TestEnvironment_test
+%{_bindir}/ThisElementsModule_test
+%{_bindir}/ThisModule_test
+%{_bindir}/ThisProject_test
+%{_bindir}/UnitTestExample_test
+%{_bindir}/UnrecognizedOption_test
+%{_bindir}/Version_test
+%{_bindir}/WcsExample
+%{_libdir}/*Examples*
 %{pydir}/*Example*
 %{pydyndir}/*Example*
-%{scriptsdir}/*_test
-%{scriptsdir}/*Example*
 %{confdir}/CppProgramExample.conf
 %{confdir}/ElementsExamples
 
+%if 0%{?fedora} > 28
+%{_bindir}/DataSourceUser_test_suite
+%{_bindir}/TemplatedDataSourceUser_test_suite
+%{pydir}/__pycache__/*
+%endif
+
+
 %changelog
+* Fri Apr 12 2019 Hubert Degaudenzi  <Hubert.Degaudenzi@unige.ch> 5.6
+- Many bug fixes.
+- LICENSE.md: add LGPL license file
+- cmake/modules/FindRPM.cmake: add the CMake module for the RPM executable
+- Add support for the KEEPTEMPDIR env variable for C++. Like for python, the 
+  presence of this environment variable will avoid the self-destruction 
+  of the temporary files and directories.
+- Generalize the usage of the KEEPTEMPDIR variable. It can also be used for
+  temporary files and the name of the variable can be chosen in the constructor
+- improve the messages in the CMake configure step (Alejandro Álvarez Ayllón).
+- ElementsExamples/src/program/FloatPrecisionExample.cpp: Add example to exhibit 
+  the floating points characteristics. The float, double and long double properties 
+  are printed.
+- ElementsKernel/ElementsKernel/Main.h: Factor out the creation of the program 
+  manager into a separate macro.
+- Add the elements_include_directories CMake macro.    
+  Dependending on the HIDE_SYSINC_WARNINGS cmake option (OFF by default), the 
+  include directories which are not starting with one of the CMAKE_PROJECT_PATH 
+  entries are added with the SYSTEM option. In that case, the "-isystem" gcc command
+  line is used instead of the traditional "-I". The warnings coming from these 
+  directories are thenignored.
+- Add the HIDE_OTHERINC_WARNINGS CMake option. It prevent any compilation warnings 
+  coming not only from the system (or third party) libraries, but also from other 
+  Elements-based project as well.
+- Add fix for the version of rpmbuild >= 4.14. Fix the handling of the byte-compiled 
+  files in the rpm creation process.
+- Test the existence of sphinxcontrib.napoleon before enabling it.
+- Inhibit the python byte-compilation for CVMFS in squeezed install mode. The script 
+  that is called by rpmbuild cannot handle a python executable which is not installed 
+  in /usr/bin.
+- Factor out the creation of the compiled test executable. It allows to create 
+  a unit executable of CppUnit or Boost type without adding it to the list of 
+  tests. This is useful to delay the usage of the executable in an other project 
+  that runs some integration tests.
+- ElementsKernel/ElementsKernel/Off64Type.h: Add header file to define off64_t on 
+  both Linux and MacOSX.
+- Add Travis build configuration file.
+- Add the extern declaration for the instantiated templates.
+- cmake/modules/FindLibM.cmake: Add CMake module to locate the "m" library. Especially 
+  usefully for C code
+- Add support for bool on logging of options (Alejandro Álvarez Ayllón).
+- make/Elements.mk: Append the CMAKEFLAGS instead of prepending it. It allows 
+  to override some of the hardcoded CMake flags from the make library.
+- Make the finding of Sphinx REQUIRED if USE_SPHINX is set to ON.
+- Use SVG instead of PNG for the dot graphs in doxygen.
+- Add the VCS version of the project. This is the number that is produced 
+  by the "--version" of the executables. It boils down to the git tag if it exists. 
+  Otherwise use a timestamp like 20190329. If git is not present, it falls back
+  to the CMake version of the project.
+- Add info make target. It is generating a cmake script called cmake_info.cmake 
+  that has to be called like "cmake -P cmake_info.cmake". for the moment the following
+  CMake informations are provided:
+  - the project name
+  - the project version
+  - the source directory
+  - the module list
+  - the include directory list
+  - the project dependencies
+  - the C++ test list with their respective executables.
+- ElementsKernel/ElementsKernel/Main.h: Add new macros that allows the passing of 
+  arguments to the constructor of the program manager.
+- Remove the DB name check.
+
 * Mon Jun 4 2018 Hubert Degaudenzi  <Hubert.Degaudenzi@unige.ch> 5.4
 - Reduce the top level wrapper Makefile to a minimum. The main library
   is located in the make/Elements.mk file of the framework. The lookup of
