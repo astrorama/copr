@@ -1,26 +1,15 @@
-%if 0%{?fedora} > 28
-%global __python /usr/bin/python3
-%else
-%global __python /usr/bin/python
-%endif
-
-Summary:        Elements Project
+Summary:        A C++/Python build framework
 Name:           Elements
-Version:        5.6
+Version:        5.8
 Release:        1%{?dist}
-License:        Public Domain
+License:        LGPLv3
 Group:          Development/Tools
-Source:         https://github.com/degauden/Elements/archive/5.6.tar.gz
-Vendor:         The Euclid Consortium
-
-Patch0:         disable_tests.patch
-
-%bcond_with doc
-
-%global __brp_mangle_shebangs_exclude /usr/bin/env python
-%{!?python_sitelib: %define python_sitelib %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib())")}
-%{!?python_sitearch: %define python_sitearch %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(1))")}
-%{!?python_libdir: %define python_libdir %(%{__python} -c "from distutils.sysconfig import get_python_lib; print(get_python_lib(1,1))")}
+Source:         https://github.com/degauden/Elements/archive/%{version}.tar.gz
+URL:            https://github.com/degauden/Elements.git
+# Remove Example programs and scripts, otherwise they will be installed
+Patch0:         elements_remove_examples.patch
+# https://github.com/degauden/Elements/pull/5
+Patch1:         elements_do_not_force_install_suffix.patch
 
 BuildRequires: CCfits-devel
 BuildRequires: boost-devel >= 1.53
@@ -32,47 +21,30 @@ BuildRequires: gtest-devel
 BuildRequires: log4cpp-devel >= 1.1
 BuildRequires: swig
 BuildRequires: wcslib-devel
+BuildRequires: doxygen
 
-%if 0%{?fedora} > 28
-BuildRequires: gcc-c++
+BuildRequires: gcc-c++ > 4.7
 BuildRequires: python3
 BuildRequires: python3-pytest
 BuildRequires: python3-devel
-Requires:      python3
-%else
-BuildRequires: python2
-BuildRequires: python2-devel
-BuildRequires: python2-pytest
-Requires:      python
-%endif
-BuildRequires: gcc > 4.7
 BuildRequires: cmake >= 2.8.5
 
+Requires:      python3
 
 Requires(post):    /sbin/ldconfig
 Requires(postun):  /sbin/ldconfig
 
-%define bin_tag x86_64-fc28-gcc83-o2g
-%define _prefix /usr
-%define build_dir_name ../../mnt/tmp/tmpv7p8q5nh/Elements/builddir
+%define cmakedir %{_libdir}/cmake/ElementsProject
+%define xmldir %{cmakedir}
 
-%define pydir %{python_sitearch}
-%define scriptsdir %{_prefix}/bin
-%define cmakedir %{_prefix}/lib64/cmake/ElementsProject
-%define makedir %{_prefix}/share/Elements/make
-%define confdir %{_prefix}/share/conf
-%define auxdir %{_prefix}/share/auxdir
-%define docdir %{_prefix}/share/doc/Elements
-%define xmldir %{_libdir}/cmake/ElementsProject
-
-%if 0%{?fedora} > 28
-%define pydyndir %{python_libdir}/lib-dynload
-%else
-%define pydyndir %{_libdir}/python*/lib-dynload
-%endif
+%define makedir %{_datadir}/%{name}/make
+%define confdir %{_datadir}/%{name}
+%define auxdir %{_datadir}/auxdir
+%define docdir %{_docdir}/%{name}
 
 %description
 A C++ base framework for the Euclid Software.
+
 
 %package devel
 Group:  Development/Libraries
@@ -80,56 +52,46 @@ Summary: The development part of the %{name} package
 Requires: cmake >= 2.8.5
 Requires: %{name} = %{version}-%{release}
 
-
 %description devel
 The development part of the %{name} package.
+
 
 %package doc
 Summary: Documentation for package %{name}
 Requires: %{name}-devel = %{version}-%{release}
 
-
 %description doc
 Documentation for package %{name}
 
-%package tests
-Summary: Tests for %{name}
-
-%description tests
-Tests for %{name}
-
-
 %prep
-%setup -q
+%setup -q -c %{name}-%{version}
 %patch0 -p1
+%patch1 -p1
 
 %build
-export BINARY_TAG=%{bin_tag}
 export VERBOSE=1
-%if 0%{?fedora} > 28
-EXTRA_CMAKE_FLAGS="-DPYTHON_EXPLICIT_VERSION=3"
-%endif
-#
-%__mkdir -p $RPM_BUILD_DIR/$BINARY_TAG
-cd $RPM_BUILD_DIR/$BINARY_TAG
-%cmake  -DSQUEEZED_INSTALL:BOOL=ON -DINSTALL_DOC:BOOL=OFF -DUSE_SPHINX=OFF ${EXTRA_CMAKE_FLAGS} --no-warn-unused-cli $RPM_BUILD_DIR/%{name}-%{version}
-%__make VERBOSE=1 %{?_smp_mflags} all
+EXTRA_CMAKE_FLAGS="-DPYTHON_EXPLICIT_VERSION=3 -DUSE_ENV_FLAGS=ON"
+mkdir build
+cd build
+%cmake -DELEMENTS_BUILD_TESTS=OFF -DSQUEEZED_INSTALL:BOOL=ON -DINSTALL_DOC:BOOL=ON \
+    -DUSE_SPHINX=OFF -DPYTHON_EXPLICIT_VERSION=3 --no-warn-unused-cli \
+    -DCMAKE_LIB_INSTALL_SUFFIX=%{_lib} ..
+%make_build
 
 %install
-export BINARY_TAG=%{bin_tag}
 export VERBOSE=1
-cd $RPM_BUILD_DIR/$BINARY_TAG
-%__make install VERBOSE=1 DESTDIR=$RPM_BUILD_ROOT
+cd build
+%make_install
 
 %check
-export CTEST_OUTPUT_ON_FAILURE=1
-export BINARY_TAG=%{bin_tag}
-export VERBOSE=1
-cd $RPM_BUILD_DIR/$BINARY_TAG
-%__make test
+export PYTHONPATH="%{buildroot}%{python3_sitearch}"
+%{buildroot}/%{_bindir}/CreateElementsProject --help
 
 %clean
 rm -rf $RPM_BUILD_ROOT
+
+%post
+/sbin/ldconfig
 
 %postun
 /sbin/ldconfig
@@ -137,39 +99,43 @@ rm -rf $RPM_BUILD_ROOT
 %files
 %defattr(-,root,root,-)
 %{xmldir}/ElementsEnvironment.xml
+
 %{_libdir}/libElementsKernel.so
-%{_libdir}/libElementsKernelBoostTest.so
-%{scriptsdir}/CreateElementsProject
-%{scriptsdir}/AddElementsModule
-%{scriptsdir}/AddCppClass
-%{scriptsdir}/AddCppProgram
-%{scriptsdir}/AddPythonProgram
-%{scriptsdir}/AddScript
-%{scriptsdir}/AddPythonModule
-%{scriptsdir}/RemoveCppClass
-%{scriptsdir}/RemoveCppProgram
-%{scriptsdir}/RemovePythonProgram
-%{scriptsdir}/RemovePythonModule
-%{scriptsdir}/ElementsNameCheck
-%{scriptsdir}/GetElementsFiles
-%{auxdir}/ElementsKernel
-%{pydir}/ELEMENTS_VERSION.py*
-%{pydir}/ELEMENTS_INSTALL.py*
-%if 0%{?fedora} > 28
-%{pydir}/__pycache__/ELEMENTS*
-%endif
-%{pydir}/ElementsKernel
+%{_libdir}/libElementsServices.so
+
+%{_bindir}/CreateElementsProject
+%{_bindir}/AddElementsModule
+%{_bindir}/AddCppClass
+%{_bindir}/AddCppProgram
+%{_bindir}/AddPythonProgram
+%{_bindir}/AddScript
+%{_bindir}/AddPythonModule
+%{_bindir}/RemoveCppClass
+%{_bindir}/RemoveCppProgram
+%{_bindir}/RemovePythonProgram
+%{_bindir}/RemovePythonModule
+%{_bindir}/ElementsNameCheck
+%{_bindir}/GetElementsFiles
+
+%{python3_sitearch}/ELEMENTS_VERSION.py
+%{python3_sitearch}/ELEMENTS_INSTALL.py
+%{python3_sitearch}/__pycache__/ELEMENTS_*.pyc
+
+%{python3_sitearch}/ElementsKernel/
+%{python3_sitearch}/ElementsServices/
+
+%dir %{auxdir}
+%{auxdir}/ElementsKernel/
 
 %files devel
 %defattr(-,root,root,-)
 %{xmldir}/ElementsBuildEnvironment.xml
 %{_includedir}/ELEMENTS_VERSION.h
 %{_includedir}/ELEMENTS_INSTALL.h
-%{_includedir}/ElementsKernel
-%{_includedir}/ElementsExamples
+%{_includedir}/ElementsKernel/
+%{_includedir}/ElementsServices/
+
 %dir %{cmakedir}
-%{cmakedir}/Elements-squeeze.spec.in
-%{cmakedir}/Elements.spec.in
 %{cmakedir}/ElementsBuildFlags.cmake
 %{cmakedir}/ElementsCoverage.cmake
 %{cmakedir}/ElementsDocumentation.cmake
@@ -180,97 +146,61 @@ rm -rf $RPM_BUILD_ROOT
 %{cmakedir}/ElementsUninstall.cmake
 %{cmakedir}/ElementsUtils.cmake
 %{cmakedir}/ElementsInfo.cmake
-%{cmakedir}/cmake_info.cmake.in
+%{cmakedir}/ElementsExports-relwithdebinfo.cmake
+%{cmakedir}/ElementsServicesExport.cmake
 %{cmakedir}/SGSPlatform.cmake
 %{cmakedir}/auxdir
-%{cmakedir}/cmake_uninstall.cmake.in
 %{cmakedir}/doc
 %{cmakedir}/modules
 %{cmakedir}/scripts
 %{cmakedir}/tests
 %{cmakedir}/ElementsExports.cmake
-%{cmakedir}/ElementsExports-relwithdebinfo.cmake
 %{cmakedir}/ElementsPlatformConfig.cmake
 %{cmakedir}/ElementsKernelExport.cmake
-%{cmakedir}/ElementsExamplesExport.cmake
 %{cmakedir}/ElementsConfigVersion.cmake
 %{cmakedir}/ElementsConfig.cmake
+
 %dir %{makedir}
 %{makedir}/Elements.mk
 
-%if %{with doc}
 %files doc
 %defattr(-,root,root,-)
+%license LICENSE.md
 %{docdir}
-%endif
-
-%files tests
-%defattr(-,root,root,-)
-%{_bindir}/Auxiliary_test
-%{_bindir}/BackTraceExample
-%{_bindir}/BackTrace_test
-%{_bindir}/BasicConfiguration_test
-%{_bindir}/BoostClassExample_test
-%{_bindir}/BoostClassExampleWithMain_test
-%{_bindir}/BoostElementsExampleAllTests
-%{_bindir}/CCfitsExample
-%{_bindir}/CfitsioExample
-%{_bindir}/CppProgramExample
-%{_bindir}/CProgramExample
-%{_bindir}/ElementsExamplesModuleInfo_test
-%{_bindir}/ElementsExamples_OtherClassExampleWithMain_test
-%{_bindir}/ElementsLogging_test
-%{_bindir}/ElementsProgramExampleWithArguments
-%{_bindir}/ElementsSimpleProgramExample
-%{_bindir}/Environment_test
-%{_bindir}/Exception_test
-%{_bindir}/FftwExample
-%{_bindir}/FloatPrecisionExample
-%{_bindir}/FunctionExample_test
-%{_bindir}/GetEnv_test
-%{_bindir}/MathConstants_test
-%{_bindir}/ModuleInfo_test
-%{_bindir}/Number_test
-%{_bindir}/OptionPrecedence_test
-%{_bindir}/OtherClassExample_test
-%{_bindir}/PathSearch_test
-%{_bindir}/Path_test
-%{_bindir}/PythonProgramExample
-%{_bindir}/PythonTestProgramExample
-%{_bindir}/Real_test
-%{_bindir}/ScriptThatChecksFile_test
-%{_bindir}/ScriptThatFails_test
-%{_bindir}/ScriptThatGivesError_test
-%{_bindir}/ScriptThatGivesOutput_test
-%{_bindir}/ScriptThatGivesStdError_test
-%{_bindir}/ScriptThatSucceeds_test
-%{_bindir}/Sleep_test
-%{_bindir}/Storage_test
-%{_bindir}/SwigProgramExample
-%{_bindir}/SystemOfUnits_test
-%{_bindir}/Temporary_test
-%{_bindir}/TestEnvironment_test
-%{_bindir}/ThisElementsModule_test
-%{_bindir}/ThisModule_test
-%{_bindir}/ThisProject_test
-%{_bindir}/UnitTestExample_test
-%{_bindir}/UnrecognizedOption_test
-%{_bindir}/Version_test
-%{_bindir}/WcsExample
-%{_libdir}/*Examples*
-%{pydir}/*Example*
-%{pydyndir}/*Example*
-%{confdir}/CppProgramExample.conf
-%{confdir}/ElementsExamples
-
-%if 0%{?fedora} > 28
-%{_bindir}/DataSourceUser_test_suite
-%{_bindir}/TemplatedDataSourceUser_test_suite
-%{pydir}/__pycache__/*
-%endif
-
 
 %changelog
+* Mon Jul 8 2019 Hubert Degaudenzi  <Hubert.Degaudenzi@unige.ch> 5.8
+- Bug fixes
+- Add the New DataSync service. (Antoine Basset)
+- Make the `--config-file` option crash if the file is not present
+  It was already the case for the python executables. Now a non-existing
+  configuration file passed explicitly on the command line will crash and
+  burn.
+- Add function to copy and configure an aux file
+  (ElementsKernel.Auxiliary.configure)
+- Install a .editorconfig file when creating a new project.
+- Add new common exit codes for python (ElementsKernel.Exit)
+- Add the USE_ENV_FLAGS cmake switch. It allows the environment variables CXXFLAGS
+  and CFLAGS to be used by the builder. The default is OFF and these are
+  ignored.
+- Add the USE_RPM_CMAKE_MACRO cmake switch. It forces the RPM spec file to use the
+  %%__cmake RPM macro for the build.
+  - By default it is OFF.
+  - If is ON, it implies that USE_ENV_FLAGS=ON for consistency with some platform
+    RPM build scripts.
+- Fix warnings from the compilation of SWIG and Cython generated sources with
+  the clang++ compiler
+- Add a CMake option (ELEMENTS_DEFAULT_LOGLEVEL) to set the default log level for
+  Elements proper messages at compile time. The possible values are
+  - INFO: this keeps the same behavior and this is the default for the unsqueeded
+    (Euclid-like) installation.
+  - DEBUG: this hides the internal Elements messages when running the built executables.
+    This is the default for the squeezed installation and the original message can be
+    recovered by using the --log-level=DEBUG option of the executable.
+- Add an example that opens explicitly a FITS file
+- Implement an EXCLUDE option for the Automatic Python Testing.
+- Move all the test data from the source tree to the auxdir.
+
 * Fri Apr 12 2019 Hubert Degaudenzi  <Hubert.Degaudenzi@unige.ch> 5.6
 - Many bug fixes.
 - LICENSE.md: add LGPL license file
