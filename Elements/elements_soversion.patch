@@ -1,0 +1,34 @@
+diff --git a/cmake/ElementsBuildFlags.cmake b/cmake/ElementsBuildFlags.cmake
+index 7ac0229..791ebe3 100644
+--- a/cmake/ElementsBuildFlags.cmake
++++ b/cmake/ElementsBuildFlags.cmake
+@@ -173,6 +173,10 @@ option(USE_LOCAL_INSTALLAREA
+        "Use local InstallArea for the Developers"
+        OFF)
+ 
++option(USE_VERSIONED_LIBRARIES
++       "Generate versioned shared libraries"
++       OFF)
++
+ option(OPT_DEBUG
+        "Enable optimisation for the Debug version"
+        ON)
+diff --git a/cmake/ElementsProjectConfig.cmake b/cmake/ElementsProjectConfig.cmake
+index 946e0d6..5dadd17 100644
+--- a/cmake/ElementsProjectConfig.cmake
++++ b/cmake/ElementsProjectConfig.cmake
+@@ -2450,6 +2450,14 @@ Provide source files and the NO_PUBLIC_HEADERS option for a plugin/module librar
+   set_property(GLOBAL APPEND PROPERTY REGULAR_CMAKE_OBJECTS ${CMAKE_PROJECT_NAME}Exports.cmake)
+   string(TOLOWER ${CMAKE_BUILD_TYPE} lower_cmake_build_type)
+   set_property(GLOBAL APPEND PROPERTY REGULAR_CMAKE_OBJECTS ${CMAKE_PROJECT_NAME}Exports-${lower_cmake_build_type}.cmake)
++
++  # Versioned shared libraries
++  if(USE_VERSIONED_LIBRARIES)
++    set_target_properties(${library} PROPERTIES
++      SOVERSION ${CMAKE_PROJECT_VERSION}
++    )
++  endif()
++
+ endfunction()
+ 
+ # Backward compatibility macro
