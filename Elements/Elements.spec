@@ -86,6 +86,8 @@ mkdir build
 # Copy cppreference-doxygen-web.tag.xml into the build directory
 mkdir -p build/doc/doxygen
 cp "%{SOURCE1}" "build/doc/doxygen"
+# Make sure auxiliary files used only for testing are not installed
+rm -r "ElementsKernel/auxdir/ElementsKernel/tests"
 # Build
 cd build
 %cmake -DELEMENTS_BUILD_TESTS=OFF -DSQUEEZED_INSTALL:BOOL=ON -DINSTALL_DOC:BOOL=ON \
