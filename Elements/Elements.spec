@@ -8,6 +8,10 @@ Source:         https://github.com/degauden/Elements/archive/%{version}.tar.gz
 URL:            https://github.com/degauden/Elements.git
 # Remove Example programs and scripts, otherwise they will be installed
 Patch0:         elements_remove_examples.patch
+# Elements try to guess itself the lib directory, but it does not consider
+# 64 bits architectures supported by Fedora. It will override CMAKE_LIB_INSTALL_SUFFIX,
+# and stick to its mistaken guess (i.e. /usr/lib for anything that is not x86_64),
+# unless this patch is applied
 # https://github.com/degauden/Elements/pull/5
 Patch1:         elements_do_not_force_install_suffix.patch
 
