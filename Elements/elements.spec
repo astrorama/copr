@@ -1,7 +1,7 @@
 Summary:        A C++/Python build framework
-Name:           Elements
+Name:           elements
 Version:        5.8
-Release:        2%{?dist}
+Release:        3%{?dist}
 License:        LGPLv3+
 Source0:        https://github.com/degauden/Elements/archive/%{version}.tar.gz
 # Elements use this file to link the documentation to cppreference.com
@@ -52,10 +52,10 @@ BuildRequires: cmake >= 2.8.5
 %define cmakedir %{_libdir}/cmake/ElementsProject
 %define xmldir %{cmakedir}
 
-%define makedir %{_datadir}/%{name}/make
-%define confdir %{_datadir}/%{name}
+%define makedir %{_datadir}/Elements/make
+%define confdir %{_datadir}/Elements
 %define auxdir %{_datadir}/auxdir
-%define docdir %{_docdir}/%{name}
+%define docdir %{_docdir}/Elements
 
 %description
 C++/Python Build Framework.
@@ -78,7 +78,7 @@ BuildArch: noarch
 Documentation for package %{name}
 
 %prep
-%autosetup -p1
+%autosetup -n Elements-%{version} -p1
 
 %build
 export VERBOSE=1
