@@ -1,9 +1,9 @@
 Summary:        A C++/Python build framework
 Name:           elements
 Version:        5.8
-Release:        3%{?dist}
+Release:        4%{?dist}
 License:        LGPLv3+
-Source0:        https://github.com/degauden/Elements/archive/%{version}.tar.gz
+Source0:        https://github.com/degauden/Elements/archive/%{version}/%{name}-%{version}.tar.gz
 # Elements use this file to link the documentation to cppreference.com
 # It is downloaded from:
 # https://upload.cppreference.com/w/File:cppreference-doxygen-web.tag.xml
@@ -49,20 +49,21 @@ BuildRequires: python3-pytest
 BuildRequires: python3-devel
 BuildRequires: cmake >= 2.8.5
 
-%define cmakedir %{_libdir}/cmake/ElementsProject
-%define xmldir %{cmakedir}
+Requires: cmake-filesystem%{?_isa}
 
-%define makedir %{_datadir}/Elements/make
-%define confdir %{_datadir}/Elements
-%define auxdir %{_datadir}/auxdir
-%define docdir %{_docdir}/Elements
+%global cmakedir %{_libdir}/cmake/ElementsProject
+
+%global makedir %{_datadir}/Elements/make
+%global confdir %{_datadir}/Elements
+%global auxdir %{_datadir}/auxdir
+%global docdir %{_docdir}/Elements
 
 %description
-C++/Python Build Framework.
+Elements is a C++/Python build framework. It helps to organize
+the software into modules which are gathered into projects.
 
 %package devel
 Summary: The development part of the %{name} package
-Requires: cmake-filesystem
 Requires: %{name}%{?_isa} = %{version}-%{release}
 
 %description devel
@@ -108,7 +109,9 @@ export PYTHONPATH="%{buildroot}%{python3_sitearch}"
 
 
 %files
-%{xmldir}/ElementsEnvironment.xml
+%dir %{confdir}
+%dir %{cmakedir}
+%{cmakedir}/ElementsEnvironment.xml
 
 %{_libdir}/libElementsKernel.so.%{version}
 %{_libdir}/libElementsServices.so.%{version}
@@ -138,7 +141,6 @@ export PYTHONPATH="%{buildroot}%{python3_sitearch}"
 %{auxdir}/ElementsKernel/
 
 %files devel
-%{xmldir}/ElementsBuildEnvironment.xml
 %{_libdir}/libElementsKernel.so
 %{_libdir}/libElementsServices.so
 %{_includedir}/ELEMENTS_VERSION.h
@@ -146,7 +148,7 @@ export PYTHONPATH="%{buildroot}%{python3_sitearch}"
 %{_includedir}/ElementsKernel/
 %{_includedir}/ElementsServices/
 
-%dir %{cmakedir}
+%{cmakedir}/ElementsBuildEnvironment.xml
 %{cmakedir}/ElementsBuildFlags.cmake
 %{cmakedir}/ElementsCoverage.cmake
 %{cmakedir}/ElementsDocumentation.cmake
@@ -171,13 +173,12 @@ export PYTHONPATH="%{buildroot}%{python3_sitearch}"
 %{cmakedir}/ElementsConfigVersion.cmake
 %{cmakedir}/ElementsConfig.cmake
 
-%dir %{makedir}
-%{makedir}/Elements.mk
+%{makedir}
 
 %files doc
 %license LICENSE.md
 %{docdir}
 
 %changelog
-* Mon Oct 28 2019 Alejandro Alvarez Ayllon <a.alvarezayllon@gmail.com> 5.8-2
+* Mon Oct 28 2019 Alejandro Alvarez Ayllon <a.alvarezayllon@gmail.com> 5.8-4
 - Initial RPM
