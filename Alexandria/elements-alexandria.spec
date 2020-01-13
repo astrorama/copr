@@ -1,7 +1,7 @@
 Summary:        A lightweight C++ utility library
 Name:           elements-alexandria
 Version:        2.14.1
-Release:        1%{?dist}
+Release:        2%{?dist}
 License:        LGPLv3+
 URL:            https://github.com/astrorama/Alexandria.git
 Source0:        https://github.com/astrorama/Alexandria/archive/%{version}/%{name}-%{version}.tar.gz
@@ -40,7 +40,7 @@ BuildRequires: python2-pytest
 BuildRequires: python2-devel
 %endif
 
-%if 0%{?rhel} <= 7
+%if 0%{?rhel} && 0%{?rhel} <= 7
 Requires: cmake%{?_isa}
 %else
 Requires: cmake-filesystem%{?_isa}
@@ -108,6 +108,7 @@ cd build
 %make_install
 
 %files
+%license LICENSE
 %{cmakedir}/AlexandriaEnvironment.xml
 
 %{_libdir}/libAlexandriaKernel.so.%{version}
@@ -174,5 +175,9 @@ cd build
 %{docdir}
 
 %changelog
+* Mon Jan 13 2020 Alejandro Alvarez Ayllon <alejandro.alvarezayllon@unige.ch> 2.14.1-2
+- Fix conditional dependency on cmake-filesystem
+- Add LICENSE file to the main package
+
 * Fri Jan 10 2020 Alejandro Alvarez Ayllon <alejandro.alvarezayllon@unige.ch> 2.14.1-1
 - Initial RPM
