@@ -1,4 +1,4 @@
-Summary:        A program that extracts a catalog of sources from astronomical images.
+Summary:        A program that extracts a catalog of sources from astronomical images
 Name:           sourcextractor++
 Version:        0.8
 Release:        1%{?dist}
@@ -77,14 +77,15 @@ Requires: cmake-filesystem%{?_isa}
 %endif
 
 %description
-%{name} is a program that extracts a catalog of sources from astronomical images.
-It is the successor to the original SExtractor package.
+%{name} is a program that extracts a catalog of sources from
+astronomical images. It is the successor to the original SExtractor
+package.
 
 %package devel
 Summary: The development part of the %{name} package
 Requires: %{name}%{?_isa} = %{version}-%{release}
 Requires: elements-devel%{?_isa} = %{elements_version}
-Requires: elemenets-alexandria%{?_isa} = %{alexandria_version}
+Requires: elements-alexandria%{?_isa} = %{alexandria_version}
 
 %description devel
 The development part of the %{name} package.
@@ -136,6 +137,12 @@ mv %{buildroot}/%{_docdir}/SourceXtractorPlusPlus %{buildroot}/%{_docdir}/source
 mkdir -p %{buildroot}/%{_sysconfdir}
 mv %{buildroot}/%{_datadir}/conf/sourcextractor++.conf %{buildroot}/%{_sysconfdir}/sourcextractor++.conf
 rm -r %{buildroot}/%{_datadir}/conf/
+
+# Conflicts with a file installed by elements
+rm %{buildroot}/%{cmakedir}/modules/FindGSL.cmake
+
+%check
+%{buildroot}/%{_bindir}/sourcextractor++ --help
 
 %files
 %license LICENSE
