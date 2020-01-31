@@ -1,0 +1,13 @@
+diff --git a/ModelFitting/CMakeLists.txt b/ModelFitting/CMakeLists.txt
+index ab5afb31..8fbca6dd 100644
+--- a/ModelFitting/CMakeLists.txt
++++ b/ModelFitting/CMakeLists.txt
+@@ -48,7 +48,7 @@ elements_add_library(ModelFitting
+ #elements_install_python_modules()
+ 
+ # Install the configuration files
+-elements_install_conf_files()
++#elements_install_conf_files()
+ 
+ # Instruction for building C++ tests
+ elements_add_unit_test(ManualParameter_test                  
