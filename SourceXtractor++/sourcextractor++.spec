@@ -10,14 +10,14 @@ Source0:        https://github.com/astrorama/sourcextractorplusplus/archive/%{ve
 # https://upload.cppreference.com/w/File:cppreference-doxygen-web.tag.xml
 Source1:        cppreference-doxygen-web.tag.xml
 # These binaries are not intended for users, so we drop them from the build
-Patch0:         remove_benchmarks.patch
-Patch1:         remove_testimage.patch
+Patch0:         sourcex_remove_benchmarks.patch
+Patch1:         sourcex_remove_testimage.patch
 # These example conf files are left over from the creation of the project
 # https://github.com/astrorama/SourceXtractorPlusPlus/commit/506f67e556c8b7b20a5f39450c00cafaa174b8cf
-Patch2:         remove_example_conffiles.patch
+Patch2:         sourcex_remove_example_conffiles.patch
 # Add /etc to the search paths for configuration files
 # https://github.com/astrorama/SourceXtractorPlusPlus/pull/213
-Patch3:         config_etc.patch
+Patch3:         sourcex_config_etc.patch
 
 %global elements_version 5.8
 %global alexandria_version 2.14.1
